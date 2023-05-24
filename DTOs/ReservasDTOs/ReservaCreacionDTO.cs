@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Api_Hotel_V2.Entidades;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Api_Hotel_V2.Entidades
+namespace Api_Hotel_V2.DTOs.ReservasDTOs
 {
-    public class Reserva : IId
+    public class ReservaCreacionDTO
     {
         [Required(ErrorMessage = "Las fechas son obligatorias")]
         [Column(TypeName = "date")]
@@ -12,22 +12,17 @@ namespace Api_Hotel_V2.Entidades
         [Required(ErrorMessage = "Las fechas son obligatorias")]
         [Column(TypeName = "date")]
         public DateTime Fin { get; set; }
-        public int Id { get; set; }
-        [Required]
         public int AfiliadoId { get; set; }
-        [Required]
         public string EstadoPago { get; set; }
-        [Required]
         public bool Activa { get; set; }
         [StringLength(200)]
         public string Obs { get; set; }
         public string Acompaniantes { get; set; }
-
-        [Required]
         public string UsuarioId { get; set; }
-        public IdentityUser Usuario { get; set; }
+        //sirven para construir una reserva con reservaciones
+        //multiples de forma automatica
 
-        public List<Reservacion> Reservaciones { get; set; }
-
+        public List<int> HabitacionesEnLaReserva { get; set; } 
+        public List<int> PaxPorHabitacion { get; set; }
     }
 }

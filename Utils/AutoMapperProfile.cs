@@ -1,6 +1,7 @@
 ﻿using Api_Hotel_V2.DTOs.AuthDTOs;
 using Api_Hotel_V2.DTOs.EntidadesDTOs;
 using Api_Hotel_V2.DTOs.HabitacionDTOs;
+using Api_Hotel_V2.DTOs.ReservasDTOs;
 using Api_Hotel_V2.Entidades;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
@@ -19,6 +20,12 @@ namespace Api_Hotel_V2.Utils
             //Habitacion
             CreateMap<Habitacion, HabitacionDTO>().ReverseMap();
             CreateMap<HabitacionCreacionDTO, Habitacion>();
+
+            //reserva
+            CreateMap<Reserva, ReservaDTO>().ReverseMap();
+            CreateMap<ReservaCreacionDTO, Reserva>();
+
+            
         }
     }
 }

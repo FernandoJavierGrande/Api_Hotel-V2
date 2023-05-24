@@ -13,6 +13,7 @@ namespace Api_Hotel_V2.Entidades
         public string Obs { get; set; }
 
 
-        public List<Reservacion> Reservaciones { get; set; }
+        public List<Reservacion> Reservaciones { get; set; } // sacar hacia una interface
+
     }
 }

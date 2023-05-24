@@ -1,17 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Api_Hotel_V2.Entidades
+namespace Api_Hotel_V2.DTOs.ReservacionesDTOs
 {
-    public class Reservacion
+    public class ReservacionDTO
     {
-        [Required]
         public int HabitacionId { get; set; }
-        [Required]
         [DataType(DataType.Date)]
         public DateTime Fecha { get; set; }
-        [Required]
+        
         public int ReservaId { get; set; }
-
-        public Habitacion Habitacion { get; set; }
     }
 }

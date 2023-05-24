@@ -14,7 +14,7 @@ namespace Api_Hotel_V2
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Reservacion>().HasKey(r => new { r.ReservaId, r.Fecha });
+            modelBuilder.Entity<Reservacion>().HasKey(r => new { r.HabitacionId, r.Fecha });
 
 
             SeedData(modelBuilder);
