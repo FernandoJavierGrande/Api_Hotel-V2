@@ -73,10 +73,13 @@ namespace Api_Hotel_V2.Controllers
 
         }
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<Reserva>>Get(int id)
+        public async Task<ActionResult<ReservaDTOconReservaciones>>Get(int id)
         {
-            var reserva = await context.Reservas.Include(r => r.Reservaciones).ThenInclude(h => h.Habitacion).FirstOrDefaultAsync(r => r.Id == id);
-            return reserva;
+            var reserva = await context.Reservas
+                .Include(r => r.Reservaciones)
+                .ThenInclude(h => h.Habitacion)
+                .FirstOrDefaultAsync(r => r.Id == id);
+            return mapper.Map<ReservaDTOconReservaciones>(reserva);
         }
 
 

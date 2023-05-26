@@ -4,9 +4,10 @@ namespace Api_Hotel_V2.DTOs.ReservacionesDTOs
 {
     public class ReservacionDTO
     {
-        public int HabitacionId { get; set; }
+        public int HabitacionNum { get; set; }
         [DataType(DataType.Date)]
         public DateTime Fecha { get; set; }
+        
         
         public int ReservaId { get; set; }
     }

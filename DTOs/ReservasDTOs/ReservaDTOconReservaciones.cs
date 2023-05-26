@@ -5,6 +5,6 @@ namespace Api_Hotel_V2.DTOs.ReservasDTOs
 {
     public class ReservaDTOconReservaciones : ReservaDTO
     {
-        public List<ReservacionDTO> Reservaciones { get; set; }
+        public List<ReservacionDTO> ReservacionesDTO { get; set; }
     }
 }
