@@ -1,12 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Api_Hotel_V2.Entidades
 {
     public class Habitacion : IId
     {
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int Id { get; set; }
-        [Required]
-        public int NumHab { get; set; } 
         [Required]
         public string Tipo { get; set; }
         [StringLength(50)]

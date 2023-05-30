@@ -12,25 +12,11 @@ namespace Api_Hotel_V2.Controllers
     {
         private readonly IMapper mapper;
         private readonly Context context;
-
         public ReservaController(IMapper mapper, Context context) : base(context, mapper)
         {
             this.mapper = mapper;
             this.context = context;
         }
-
-        //[HttpGet("{id:int}", Name = "GetRva")]
-        //public async Task<ActionResult<Reserva>> Get1(int id)
-        //{
-        //    var resp = await context.Reservas.FirstOrDefaultAsync(r => r.Id == id);
-
-        //    if (resp != null)
-        //    {
-        //        return resp;
-        //    };
-        //    return BadRequest();
-        //}
-
         [HttpPost]
         public async Task<ActionResult<ReservaDTO>> Post([FromBody] ReservaCreacionDTO reservaCreacionDTO)
         { 
@@ -58,31 +44,74 @@ namespace Api_Hotel_V2.Controllers
                         reserva.Reservaciones = ListaReservaciones;
                     }
                 }
-
                 context.Add(reserva);
 
                 await context.SaveChangesAsync();
 
-                return Ok(reserva);
+                var reservaDTO = mapper.Map<ReservaDTO>(reserva);
+
+                return CreatedAtRoute("GetRva", new {id = reserva.Id}, reservaDTO);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
                 throw;
             }
-
         }
-        [HttpGet("{id:int}")]
+        [HttpGet("{id:int}", Name = "GetRva")]
         public async Task<ActionResult<ReservaDTOconReservaciones>>Get(int id)
         {
-            var reserva = await context.Reservas
+            try
+            {
+                var reserva = await context.Reservas
                 .Include(r => r.Reservaciones)
                 .ThenInclude(h => h.Habitacion)
+                .Include(r => r.Afiliado)
                 .FirstOrDefaultAsync(r => r.Id == id);
-            return mapper.Map<ReservaDTOconReservaciones>(reserva);
+
+                if (reserva == null){
+                    return NotFound();}
+                return mapper.Map<ReservaDTOconReservaciones>(reserva);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
+        [HttpDelete("{id:int}")]
+        public async Task<ActionResult> Delete(int id)
+        {
+            try
+            {
+                var exist = await context.Reservas.AnyAsync(r => r.Id == id);
 
+                if ( !exist) { return NotFound(); }
 
+                context.Remove(new Reserva { Id = id });
+
+                await context.SaveChangesAsync();
+
+                return NoContent();
+                
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult> Put(int id, [FromBody] ReservaCreacionDTO reservaCreacionDTO)
+        {
+            try
+            {
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+        }
 
     }
 }

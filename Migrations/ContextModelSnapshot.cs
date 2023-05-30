@@ -50,7 +50,7 @@ namespace Api_Hotel_V2.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Afiliados");
+                    b.ToTable("Afiliados", (string)null);
                 });
 
             modelBuilder.Entity("Api_Hotel_V2.Entidades.Habitacion", b =>
@@ -74,7 +74,7 @@ namespace Api_Hotel_V2.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Habitaciones");
+                    b.ToTable("Habitaciones", (string)null);
                 });
 
             modelBuilder.Entity("Api_Hotel_V2.Entidades.Reserva", b =>
@@ -118,7 +118,7 @@ namespace Api_Hotel_V2.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("Reservas");
+                    b.ToTable("Reservas", (string)null);
                 });
 
             modelBuilder.Entity("Api_Hotel_V2.Entidades.Reservacion", b =>
@@ -136,7 +136,7 @@ namespace Api_Hotel_V2.Migrations
 
                     b.HasIndex("ReservaId");
 
-                    b.ToTable("Reservaciones");
+                    b.ToTable("Reservaciones", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
