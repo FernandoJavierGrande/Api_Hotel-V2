@@ -10,6 +10,23 @@ namespace Api_Hotel_V2.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "Afiliados",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    NumAfiliado = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Cuil = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Nombre = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Apellido = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FechaCreacion = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Afiliados", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
                 {
@@ -46,6 +63,19 @@ namespace Api_Hotel_V2.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Habitaciones",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false),
+                    Tipo = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Obs = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Habitaciones", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -154,6 +184,63 @@ namespace Api_Hotel_V2.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Reservas",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Inicio = table.Column<DateTime>(type: "date", nullable: false),
+                    Fin = table.Column<DateTime>(type: "date", nullable: false),
+                    AfiliadoId = table.Column<int>(type: "int", nullable: false),
+                    EstadoPago = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Activa = table.Column<bool>(type: "bit", nullable: false),
+                    Obs = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    Acompaniantes = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UsuarioId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Reservas", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Reservas_Afiliados_AfiliadoId",
+                        column: x => x.AfiliadoId,
+                        principalTable: "Afiliados",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Reservas_AspNetUsers_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Reservaciones",
+                columns: table => new
+                {
+                    HabitacionId = table.Column<int>(type: "int", nullable: false),
+                    Fecha = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ReservaId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Reservaciones", x => new { x.HabitacionId, x.Fecha });
+                    table.ForeignKey(
+                        name: "FK_Reservaciones_Habitaciones_HabitacionId",
+                        column: x => x.HabitacionId,
+                        principalTable: "Habitaciones",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Reservaciones_Reservas_ReservaId",
+                        column: x => x.ReservaId,
+                        principalTable: "Reservas",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
@@ -192,6 +279,21 @@ namespace Api_Hotel_V2.Migrations
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reservaciones_ReservaId",
+                table: "Reservaciones",
+                column: "ReservaId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reservas_AfiliadoId",
+                table: "Reservas",
+                column: "AfiliadoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reservas_UsuarioId",
+                table: "Reservas",
+                column: "UsuarioId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -212,7 +314,19 @@ namespace Api_Hotel_V2.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "Reservaciones");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles");
+
+            migrationBuilder.DropTable(
+                name: "Habitaciones");
+
+            migrationBuilder.DropTable(
+                name: "Reservas");
+
+            migrationBuilder.DropTable(
+                name: "Afiliados");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");

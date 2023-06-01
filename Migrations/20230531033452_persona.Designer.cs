@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Api_Hotel_V2.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20230523140812_fechasRes")]
-    partial class fechasRes
+    [Migration("20230531033452_persona")]
+    partial class persona
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -48,9 +48,13 @@ namespace Api_Hotel_V2.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("NumAfiliado")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex(new[] { "NumAfiliado" }, "UqNumAfiliado")
+                        .IsUnique();
 
                     b.ToTable("Afiliados");
                 });
@@ -58,12 +62,6 @@ namespace Api_Hotel_V2.Migrations
             modelBuilder.Entity("Api_Hotel_V2.Entidades.Habitacion", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int>("NumHab")
                         .HasColumnType("int");
 
                     b.Property<string>("Obs")
@@ -125,18 +123,18 @@ namespace Api_Hotel_V2.Migrations
 
             modelBuilder.Entity("Api_Hotel_V2.Entidades.Reservacion", b =>
                 {
-                    b.Property<int>("ReservaId")
+                    b.Property<int>("HabitacionId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("Fecha")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("HabitacionId")
+                    b.Property<int>("ReservaId")
                         .HasColumnType("int");
 
-                    b.HasKey("ReservaId", "Fecha");
+                    b.HasKey("HabitacionId", "Fecha");
 
-                    b.HasIndex("HabitacionId");
+                    b.HasIndex("ReservaId");
 
                     b.ToTable("Reservaciones");
                 });
@@ -341,7 +339,7 @@ namespace Api_Hotel_V2.Migrations
 
             modelBuilder.Entity("Api_Hotel_V2.Entidades.Reserva", b =>
                 {
-                    b.HasOne("Api_Hotel_V2.Entidades.Afiliado", null)
+                    b.HasOne("Api_Hotel_V2.Entidades.Afiliado", "Afiliado")
                         .WithMany("Reservas")
                         .HasForeignKey("AfiliadoId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -353,12 +351,14 @@ namespace Api_Hotel_V2.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Afiliado");
+
                     b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("Api_Hotel_V2.Entidades.Reservacion", b =>
                 {
-                    b.HasOne("Api_Hotel_V2.Entidades.Habitacion", null)
+                    b.HasOne("Api_Hotel_V2.Entidades.Habitacion", "Habitacion")
                         .WithMany("Reservaciones")
                         .HasForeignKey("HabitacionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -369,6 +369,8 @@ namespace Api_Hotel_V2.Migrations
                         .HasForeignKey("ReservaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Habitacion");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

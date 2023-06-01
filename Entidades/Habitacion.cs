@@ -5,6 +5,7 @@ namespace Api_Hotel_V2.Entidades
 {
     public class Habitacion : IId
     {
+        [Required]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int Id { get; set; }
         [Required]

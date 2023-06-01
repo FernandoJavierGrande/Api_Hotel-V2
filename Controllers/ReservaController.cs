@@ -1,8 +1,12 @@
 ﻿using Api_Hotel_V2.DTOs.ReservasDTOs;
 using Api_Hotel_V2.Entidades;
 using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Api_Hotel_V2.Controllers
 {
@@ -18,17 +22,30 @@ namespace Api_Hotel_V2.Controllers
             this.context = context;
         }
         [HttpPost]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult<ReservaDTO>> Post([FromBody] ReservaCreacionDTO reservaCreacionDTO)
         { 
             try
             {
+                //pasar a middle
+
+                if(reservaCreacionDTO.Fin.Date == reservaCreacionDTO.Inicio.Date)
+                {
+                    return BadRequest();
+                }
+
+                var id = HttpContext.User.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier).Value;
+
+
                 Reservacion reservacion;
                 List<Reservacion> ListaReservaciones = new List<Reservacion>();
 
-                int dias = (reservaCreacionDTO.Fin - reservaCreacionDTO.Inicio).Days + 1;
+                int dias = (reservaCreacionDTO.Fin - reservaCreacionDTO.Inicio).Days;
                 int habitaciones = reservaCreacionDTO.HabitacionesEnLaReserva.Count();
 
                 var reserva = mapper.Map<Reserva>(reservaCreacionDTO);
+                reserva.UsuarioId = id;
+                reserva.Activa = true;
 
                 for (int i = 0; i < habitaciones; i++)
                 {
@@ -50,7 +67,7 @@ namespace Api_Hotel_V2.Controllers
 
                 var reservaDTO = mapper.Map<ReservaDTO>(reserva);
 
-                return CreatedAtRoute("GetRva", new {id = reserva.Id}, reservaDTO);
+                return CreatedAtRoute("GetRva", new { id = reserva.Id }, reservaDTO);
             }
             catch (Exception e)
             {
@@ -99,19 +116,59 @@ namespace Api_Hotel_V2.Controllers
                 throw;
             }
         }
-        [HttpPut("{id:int}")]
-        public async Task<ActionResult> Put(int id, [FromBody] ReservaCreacionDTO reservaCreacionDTO)
+        [HttpPut("activa/{id:int}")]
+        public async Task<ActionResult> Put(int id)
         {
             try
             {
-                return Ok();
+                var reserva = await context.Reservas.FirstOrDefaultAsync(r => r.Id == id);
+
+                if (reserva == null)
+                {
+                    return NotFound();
+                }
+                reserva.Activa = !reserva.Activa;
+
+                context.Update(reserva);
+
+                await context.SaveChangesAsync();
+
+                return NoContent();
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                Console.WriteLine(e);
                 throw;
             }
         }
+        [HttpPatch("{id:int}")]
+        public async Task<ActionResult> Patch(int id, JsonPatchDocument<PatchReservaEstadoDTO>jsonPatchDocument )
+        {
+            if(jsonPatchDocument == null)
+            {
+                return BadRequest();
+            }
 
+            var reserva = await context.Reservas.FirstOrDefaultAsync(r => r.Id == id);
+
+            if (reserva == null)
+            {
+                return NotFound();
+            }
+
+            var RvaDTO = mapper.Map<PatchReservaEstadoDTO>(reserva);
+
+            jsonPatchDocument.ApplyTo(RvaDTO, ModelState);
+
+            var isValid = TryValidateModel(RvaDTO);
+
+            if (!isValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            mapper.Map(RvaDTO, reserva);
+            await context.SaveChangesAsync();
+            return NoContent();
+        }
     }
 }

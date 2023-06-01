@@ -12,17 +12,14 @@ namespace Api_Hotel_V2.DTOs.ReservasDTOs
         [Required(ErrorMessage = "Las fechas son obligatorias")]
         [Column(TypeName = "date")]
         public DateTime Fin { get; set; }
+        [Required]
         public int AfiliadoId { get; set; }
+        [Required]
         public string EstadoPago { get; set; }
-        public bool Activa { get; set; }
         [StringLength(200)]
         public string Obs { get; set; }
         public string Acompaniantes { get; set; }
-        public string UsuarioId { get; set; }
-        //sirven para construir una reserva con reservaciones
-        //multiples de forma automatica
-
+        public DateTime? fechaDeCreacion { get; set; } = DateTime.Now; //updatedb
         public List<int> HabitacionesEnLaReserva { get; set; } 
-        public List<int> PaxPorHabitacion { get; set; }
     }
 }

@@ -3,6 +3,7 @@ using Api_Hotel_V2.DTOs.HabitacionDTOs;
 using Api_Hotel_V2.Entidades;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Api_Hotel_V2.Controllers
 {
@@ -26,28 +27,60 @@ namespace Api_Hotel_V2.Controllers
             return await Get<Habitacion, HabitacionDTO>();
         }
 
-        [HttpGet("{id:int}" , Name = "GetHabitacionById")]
+        [HttpGet("{id:int}" , Name = "GetHabitacion")]
         public async Task<ActionResult<HabitacionDTO>> Get(int id)
         {
-            return await Get<Habitacion,HabitacionDTO>(id);
+            try
+            {
+                return await Get<Habitacion, HabitacionDTO>(id);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
         [HttpPost]
-        public async Task<ActionResult> Post([FromBody] HabitacionCreacionDTO habitacionCreacionDTO)
+        public async Task<ActionResult> Post([FromBody] HabitacionDTO habitacionDTO)
         {
-            return await Post<HabitacionCreacionDTO, Habitacion, HabitacionDTO>(habitacionCreacionDTO, "GetHabitacionById");
+            try
+            {
+                var exist = await context.Habitaciones.AnyAsync(h => h.Id == habitacionDTO.Id);
+
+                if (exist) { return BadRequest("La habitacion ya existe"); }
+
+                return await Post<HabitacionDTO, Habitacion, HabitacionDTO>(habitacionDTO, "GetHabitacion");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
         }
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult> Put(int id, [FromBody] HabitacionCreacionDTO habitacionCreacionDTO)
+        public async Task<ActionResult> Put(int id, [FromBody] HabitacionDTO habitacionDTO)
         {
-            return await Put<HabitacionCreacionDTO, Habitacion>(id, habitacionCreacionDTO);
+            try
+            {
+                return await Put<HabitacionDTO, Habitacion>(id, habitacionDTO);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
-
         [HttpDelete("{id:int}")]
         public async Task<ActionResult> Delete(int id)
         {
-           return await Delete<Habitacion>(id);
+            try
+            {
+                return await Delete<Habitacion>(id);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
     }
 }

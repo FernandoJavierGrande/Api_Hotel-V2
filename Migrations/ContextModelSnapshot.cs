@@ -36,7 +36,8 @@ namespace Api_Hotel_V2.Migrations
 
                     b.Property<string>("Cuil")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(11)
+                        .HasColumnType("nvarchar(11)");
 
                     b.Property<DateTime>("FechaCreacion")
                         .HasColumnType("datetime2");
@@ -46,22 +47,23 @@ namespace Api_Hotel_V2.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("NumAfiliado")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Afiliados", (string)null);
+                    b.HasIndex(new[] { "Cuil" }, "UqCuil")
+                        .IsUnique();
+
+                    b.HasIndex(new[] { "NumAfiliado" }, "UqNumAfiliado")
+                        .IsUnique();
+
+                    b.ToTable("Afiliados");
                 });
 
             modelBuilder.Entity("Api_Hotel_V2.Entidades.Habitacion", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int>("NumHab")
                         .HasColumnType("int");
 
                     b.Property<string>("Obs")
@@ -74,7 +76,7 @@ namespace Api_Hotel_V2.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Habitaciones", (string)null);
+                    b.ToTable("Habitaciones");
                 });
 
             modelBuilder.Entity("Api_Hotel_V2.Entidades.Reserva", b =>
@@ -112,13 +114,16 @@ namespace Api_Hotel_V2.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<DateTime?>("fechaDeCreacion")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AfiliadoId");
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("Reservas", (string)null);
+                    b.ToTable("Reservas");
                 });
 
             modelBuilder.Entity("Api_Hotel_V2.Entidades.Reservacion", b =>
@@ -136,7 +141,7 @@ namespace Api_Hotel_V2.Migrations
 
                     b.HasIndex("ReservaId");
 
-                    b.ToTable("Reservaciones", (string)null);
+                    b.ToTable("Reservaciones");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -339,7 +344,7 @@ namespace Api_Hotel_V2.Migrations
 
             modelBuilder.Entity("Api_Hotel_V2.Entidades.Reserva", b =>
                 {
-                    b.HasOne("Api_Hotel_V2.Entidades.Afiliado", null)
+                    b.HasOne("Api_Hotel_V2.Entidades.Afiliado", "Afiliado")
                         .WithMany("Reservas")
                         .HasForeignKey("AfiliadoId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -351,12 +356,14 @@ namespace Api_Hotel_V2.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Afiliado");
+
                     b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("Api_Hotel_V2.Entidades.Reservacion", b =>
                 {
-                    b.HasOne("Api_Hotel_V2.Entidades.Habitacion", null)
+                    b.HasOne("Api_Hotel_V2.Entidades.Habitacion", "Habitacion")
                         .WithMany("Reservaciones")
                         .HasForeignKey("HabitacionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -367,6 +374,8 @@ namespace Api_Hotel_V2.Migrations
                         .HasForeignKey("ReservaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Habitacion");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

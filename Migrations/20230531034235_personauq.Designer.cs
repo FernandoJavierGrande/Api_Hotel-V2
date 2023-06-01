@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Api_Hotel_V2.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20230518015821_seedData")]
-    partial class seedData
+    [Migration("20230531034235_personauq")]
+    partial class personauq
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -23,6 +23,124 @@ namespace Api_Hotel_V2.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
+
+            modelBuilder.Entity("Api_Hotel_V2.Entidades.Afiliado", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Apellido")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Cuil")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NumAfiliado")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "Cuil" }, "UqCuil")
+                        .IsUnique();
+
+                    b.HasIndex(new[] { "NumAfiliado" }, "UqNumAfiliado")
+                        .IsUnique();
+
+                    b.ToTable("Afiliados");
+                });
+
+            modelBuilder.Entity("Api_Hotel_V2.Entidades.Habitacion", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Obs")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Habitaciones");
+                });
+
+            modelBuilder.Entity("Api_Hotel_V2.Entidades.Reserva", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Acompaniantes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Activa")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("AfiliadoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EstadoPago")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Fin")
+                        .HasColumnType("date");
+
+                    b.Property<DateTime>("Inicio")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Obs")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("UsuarioId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AfiliadoId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("Reservas");
+                });
+
+            modelBuilder.Entity("Api_Hotel_V2.Entidades.Reservacion", b =>
+                {
+                    b.Property<int>("HabitacionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ReservaId")
+                        .HasColumnType("int");
+
+                    b.HasKey("HabitacionId", "Fecha");
+
+                    b.HasIndex("ReservaId");
+
+                    b.ToTable("Reservaciones");
+                });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
@@ -222,6 +340,42 @@ namespace Api_Hotel_V2.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Api_Hotel_V2.Entidades.Reserva", b =>
+                {
+                    b.HasOne("Api_Hotel_V2.Entidades.Afiliado", "Afiliado")
+                        .WithMany("Reservas")
+                        .HasForeignKey("AfiliadoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Afiliado");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("Api_Hotel_V2.Entidades.Reservacion", b =>
+                {
+                    b.HasOne("Api_Hotel_V2.Entidades.Habitacion", "Habitacion")
+                        .WithMany("Reservaciones")
+                        .HasForeignKey("HabitacionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Api_Hotel_V2.Entidades.Reserva", null)
+                        .WithMany("Reservaciones")
+                        .HasForeignKey("ReservaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Habitacion");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -271,6 +425,21 @@ namespace Api_Hotel_V2.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Api_Hotel_V2.Entidades.Afiliado", b =>
+                {
+                    b.Navigation("Reservas");
+                });
+
+            modelBuilder.Entity("Api_Hotel_V2.Entidades.Habitacion", b =>
+                {
+                    b.Navigation("Reservaciones");
+                });
+
+            modelBuilder.Entity("Api_Hotel_V2.Entidades.Reserva", b =>
+                {
+                    b.Navigation("Reservaciones");
                 });
 #pragma warning restore 612, 618
         }

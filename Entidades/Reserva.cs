@@ -27,6 +27,8 @@ namespace Api_Hotel_V2.Entidades
         public string UsuarioId { get; set; }
         public IdentityUser Usuario { get; set; }
 
+        public DateTime? fechaDeCreacion { get; set; }
+        
         public Afiliado Afiliado { get; set; }
         public List<Reservacion> Reservaciones { get; set; }
 

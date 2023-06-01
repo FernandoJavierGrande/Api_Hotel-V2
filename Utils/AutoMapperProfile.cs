@@ -20,7 +20,6 @@ namespace Api_Hotel_V2.Utils
 
             //Habitacion
             CreateMap<Habitacion, HabitacionDTO>().ReverseMap();
-            CreateMap<HabitacionCreacionDTO, Habitacion>();
 
             //reserva
             CreateMap<Reserva, ReservaDTO>().ReverseMap();
@@ -28,8 +27,11 @@ namespace Api_Hotel_V2.Utils
             CreateMap<Reserva, ReservaDTOconReservaciones>()
                 .ForMember(a => a.NumAfiliado, opt => { opt.MapFrom(r => r.Afiliado.NumAfiliado); })
                 .ForMember(r => r.ReservacionesDTO, opciones => opciones.MapFrom(MapReservacionesDTOReservas));
+            CreateMap<Reserva, PatchReservaEstadoDTO>().ReverseMap();
 
+            //reservacion
             CreateMap<Reservacion, ReservacionDTO>().ReverseMap();
+            CreateMap<Reservacion, ReservacionCreacionDTO>().ReverseMap();
 
         }
         
@@ -41,7 +43,7 @@ namespace Api_Hotel_V2.Utils
             {
                 resultado.Add(new ReservacionDTO()
                 {
-                    HabitacionNum = reservacion.Habitacion.NumHab,
+                    HabitacionId = reservacion.Habitacion.Id,
                     Fecha = reservacion.Fecha,
                 });
             }

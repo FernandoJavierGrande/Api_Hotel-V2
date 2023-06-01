@@ -144,7 +144,7 @@ namespace Api_Hotel_V2.Controllers
 
             claims.AddRange(claimsDB);//une con los claims de la bbdd para que se generen en token
 
-            var expiracion = DateTime.UtcNow.AddDays(1);
+            var expiracion = DateTime.UtcNow.AddDays(15);
 
             var llave = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["llaveJwt"]));
             var credenciales = new SigningCredentials(llave, SecurityAlgorithms.HmacSha256);
