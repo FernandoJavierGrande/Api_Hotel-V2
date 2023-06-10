@@ -23,50 +23,37 @@ namespace Api_Hotel_V2.Controllers
         }
         [HttpPost]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        public async Task<ActionResult<ReservaDTO>> Post([FromBody] ReservaCreacionDTO reservaCreacionDTO)
-        { 
+        public async Task<ActionResult<ReservaDTOconReservaciones>> Post([FromBody] ReservaCreacionDTO reservaCreacionDTO)
+        {
             try
             {
-                //pasar a middle
-
-                if(reservaCreacionDTO.Fin.Date == reservaCreacionDTO.Inicio.Date)
-                {
-                    return BadRequest();
-                }
-
                 var id = HttpContext.User.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier).Value;
 
+                Reserva reserva = mapper.Map<Reserva>(reservaCreacionDTO);
+                List<DateTime> listaDias = new List<DateTime>();
 
-                Reservacion reservacion;
-                List<Reservacion> ListaReservaciones = new List<Reservacion>();
-
-                int dias = (reservaCreacionDTO.Fin - reservaCreacionDTO.Inicio).Days;
-                int habitaciones = reservaCreacionDTO.HabitacionesEnLaReserva.Count();
-
-                var reserva = mapper.Map<Reserva>(reservaCreacionDTO);
-                reserva.UsuarioId = id;
-                reserva.Activa = true;
-
-                for (int i = 0; i < habitaciones; i++)
+                foreach (var res in reserva.Reservaciones)
                 {
-                    for (int j = 0; j < dias; j++)
+                    if (!listaDias.Contains(res.Fecha)) listaDias.Add(res.Fecha);
+                }
+
+                var reservaciones = await context.Reservaciones.Where(r => listaDias.Contains(r.Fecha)).ToListAsync();
+
+                for (int i = 0; i < reservaciones.Count; i++)
+                {
+                    for (int j = 0; j < reserva.Reservaciones.Count; j++)
                     {
-                        reservacion = new Reservacion();
-                        reservacion.HabitacionId = reservaCreacionDTO.HabitacionesEnLaReserva[i];
-
-                        reservacion.Fecha = reservaCreacionDTO.Inicio.AddDays(j);
-
-                        ListaReservaciones.Add(reservacion);
-
-                        reserva.Reservaciones = ListaReservaciones;
+                        if (reservaciones[i].HabitacionId == reserva.Reservaciones[j].HabitacionId && reservaciones[i].Fecha == reserva.Reservaciones[j].Fecha)
+                        {
+                            return BadRequest($"ocupado");
+                        }
                     }
                 }
+                reserva.UsuarioId = id;
                 context.Add(reserva);
-
                 await context.SaveChangesAsync();
 
                 var reservaDTO = mapper.Map<ReservaDTO>(reserva);
-
                 return CreatedAtRoute("GetRva", new { id = reserva.Id }, reservaDTO);
             }
             catch (Exception e)

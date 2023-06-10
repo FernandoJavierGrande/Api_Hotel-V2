@@ -9,7 +9,6 @@ namespace Api_Hotel_V2.DTOs.ReservacionesDTOs
         [Required]
         [DataType(DataType.Date)]
         public DateTime Fecha { get; set; }
-        [Required]
-        public int ReservaId { get; set; }
+
     }
 }

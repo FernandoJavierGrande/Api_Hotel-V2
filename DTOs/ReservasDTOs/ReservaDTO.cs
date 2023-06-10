@@ -2,9 +2,6 @@
 {
     public class ReservaDTO 
     {
-        public DateTime Inicio { get; set; }
-        
-        public DateTime Fin { get; set; }
         public int Id { get; set; }
         public int NumAfiliado { get; set; }
         public int AfiliadoId { get; set; }

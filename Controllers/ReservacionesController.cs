@@ -14,52 +14,64 @@ namespace Api_Hotel_V2.Controllers
         private readonly IMapper mapper;
         private readonly Context context;
 
-        public ReservacionesController(IMapper mapper, Context context): base(context, mapper)
+        public ReservacionesController(IMapper mapper, Context context) : base(context, mapper)
         {
             this.mapper = mapper;
             this.context = context;
         }
+        [HttpGet("{fecha}")]
+        public async Task<ActionResult> Get(string fecha)
+        {
+            DateTime date;
+            int cantidadDias = 7;
+            List<ReservacionDTO> listaReservacionesDTO = new List<ReservacionDTO>();
+            var ok = DateTime.TryParse(fecha, out date);
+            
+            if (!ok) return BadRequest();
+            try
+            {
+                var reservaciones = await context.Reservaciones.Where(r => r.Fecha >= date && r.Fecha <= date.AddDays(cantidadDias)).ToListAsync();
+
+                foreach (var res in reservaciones)
+                {
+                    listaReservacionesDTO.Add(mapper.Map<ReservacionDTO>(res));
+                }
+
+            return Ok(listaReservacionesDTO);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500);
+            }
+
+        }
+        
+
         [HttpPost("{id:int}")]
         public async Task<ActionResult> Post(int id,[FromBody] List<ReservacionDTO> LsReservacionDTOs)
         {
-            List<DateTime> listDays = new List<DateTime>();
-            List<int> habs = new List<int>();   
-            if (LsReservacionDTOs.Count <1)
-            {
-                return BadRequest();
-            }
+            List<DateTime> listaDias = new List<DateTime>();
 
+            if (LsReservacionDTOs.Count <1) return BadRequest();
             
-            foreach (var reservacionDTO in LsReservacionDTOs)
+
+            foreach (var res in LsReservacionDTOs)
             {
-                if (!listDays.Contains(reservacionDTO.Fecha))
-                {
-                    listDays.Add(reservacionDTO.Fecha);
-                }
-                if (!habs.Contains(reservacionDTO.HabitacionId))
-                {
-                    habs.Add(reservacionDTO.HabitacionId);
-                }
+                if (!listaDias.Contains(res.Fecha)) listaDias.Add(res.Fecha);
             }
 
-           var reservacionesDB = await context.Reservaciones.Where(r => listDays.Contains(r.Fecha)).Include(h =>h.Habitacion).ToListAsync();
+            var reservacionesDb= await context.Reservaciones.Where(r => listaDias.Contains(r.Fecha)).ToListAsync();
 
-           if(reservacionesDB.Count > 0)
-           {
-                foreach (var res in reservacionesDB)
+            for (int i = 0; i < reservacionesDb.Count; i++)
+            {
+                for (int j = 0; j < LsReservacionDTOs.Count; j++)
                 {
-                    if (habs.Contains(res.Habitacion.Id))
+                    if (reservacionesDb[i].HabitacionId == LsReservacionDTOs[j].HabitacionId && reservacionesDb[i].Fecha == LsReservacionDTOs[j].Fecha)
                     {
-                        return BadRequest("ocupado");
+                        return BadRequest($"ocupado");
                     }
                 }
             }
-
-
-            var reserva = await context.Reservas.FirstOrDefaultAsync(r => r.Id == id);
-
-            reserva = cambiarFechasReserva(reserva, LsReservacionDTOs);
-
 
             Reservacion reservacion;
             foreach (var resDto in LsReservacionDTOs)
@@ -76,61 +88,30 @@ namespace Api_Hotel_V2.Controllers
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                throw;
+                return StatusCode(500);
             }
         }
         [HttpDelete]
-        public async Task<ActionResult> Delete([FromBody] ReservacionCreacionDTO reservacionCreacionDTO)
+        public async Task<ActionResult> Delete([FromBody] ReservacionCreacionDTO reservacionDeleteDTO)
         {
+           
+            Reservacion reservacionDelete = mapper.Map<Reservacion>(reservacionDeleteDTO);
+
             try
             {
-                var reserva = await context.Reservas.AsNoTracking().Include(x => x.Reservaciones).FirstOrDefaultAsync(r => r.Id == reservacionCreacionDTO.ReservaId);
+                var existe = await context.Reservaciones.AnyAsync(c => c == reservacionDelete);
 
-                if (reserva == null)
-                {
-                    return NotFound("La reserva no existe");
-                }
+                if (!existe) return NotFound();
+                context.Remove(reservacionDelete);
 
-                if (reserva.Reservaciones.Count > 0)
-                {
-                    foreach (var reservacion in reserva.Reservaciones)
-                    {
-                        if (reservacion.HabitacionId == reservacionCreacionDTO.HabitacionId && reservacion.Fecha == reservacionCreacionDTO.Fecha)
-                        {
-                            var res = mapper.Map<Reservacion>(reservacionCreacionDTO);
+                await context.SaveChangesAsync();
 
-                            context.Remove(res);
-
-
-                            //Console.WriteLine($"inicio {reserva.Inicio} fin {reserva.Fin}");
-                            await context.SaveChangesAsync();
-                            return NoContent();
-                        }
-                    }
-                }
-                return NotFound();
+                return NoContent();
             }
             catch (Exception)
             {
-                throw;
+                return StatusCode(500);
             }
-        }
-
-        private Reserva cambiarFechasReserva(Reserva reserva, List<ReservacionDTO> LsRes)
-        {
-            foreach (var res in LsRes)
-            {
-                if (reserva.Inicio > res.Fecha)
-                {
-                    reserva.Inicio = res.Fecha;
-                }
-                if (reserva.Fin < res.Fecha.AddDays(1))
-                {
-                    reserva.Fin = res.Fecha.AddDays(1);
-                }
-            }
-            return reserva;
         }
     }
 }
