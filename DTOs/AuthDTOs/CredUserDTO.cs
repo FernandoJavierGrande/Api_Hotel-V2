@@ -9,6 +9,6 @@ namespace Api_Hotel_V2.DTOs.Auth
         public string Email { get; set; }
         [Required]
         public string Password { get; set; }
-        public string role { get; set; }
+        public string role { get; set; } = "user";
     }
 }

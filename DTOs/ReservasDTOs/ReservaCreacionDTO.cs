@@ -1,6 +1,5 @@
 ﻿using Api_Hotel_V2.DTOs.ReservacionesDTOs;
 using Api_Hotel_V2.Entidades;
-using Api_Hotel_V2.Validaciones;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

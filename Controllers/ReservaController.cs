@@ -11,6 +11,7 @@ using System.Security.Claims;
 namespace Api_Hotel_V2.Controllers
 {
     [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("api/reserva")]
     public class ReservaController : CustomBaseController
     {

@@ -1,6 +1,7 @@
 ﻿using Api_Hotel_V2.DTOs;
 using Api_Hotel_V2.DTOs.Auth;
 using Api_Hotel_V2.DTOs.AuthDTOs;
+using Api_Hotel_V2.Servicios;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -19,54 +20,90 @@ namespace Api_Hotel_V2.Controllers
     {
         private readonly UserManager<IdentityUser> userManager;
         private readonly IConfiguration configuration;
+        private readonly IEmailService emailService;
         private readonly SignInManager<IdentityUser> signInManager;
         private readonly Context context;
 
         public AuthController(UserManager<IdentityUser> userManager,
             IConfiguration configuration,
+            IEmailService emailService,
             SignInManager<IdentityUser> signInManager, Context context, IMapper mapper)
             :base (context,mapper)
         {
             this.userManager = userManager;
             this.configuration = configuration;
+            this.emailService = emailService;
             this.signInManager = signInManager;
             this.context = context;
         } 
         
         [HttpPost("registrar")] //api/cuentas/registrar
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin")]
-        public async Task<ActionResult<RespAuthDTO>> Registrar(CredUserDTO credencialesUsuariosDTO)
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+        public async Task<ActionResult<RespAuthDTO>> Registrar(CredUserDTO credencialesUsuariosDTO )
         {
-            var usuario = new IdentityUser { UserName = credencialesUsuariosDTO.Email, Email = credencialesUsuariosDTO.Email };
-            var resultado = await userManager.CreateAsync(usuario, credencialesUsuariosDTO.Password);
-            var role = await userManager.AddClaimAsync(usuario, new Claim(ClaimTypes.Role, credencialesUsuariosDTO.role));
-
-            if (resultado.Succeeded && role.Succeeded)
+            try
             {
+                var usuario = new IdentityUser { UserName = credencialesUsuariosDTO.Email, Email = credencialesUsuariosDTO.Email };
+                var resultado = await userManager.CreateAsync(usuario, credencialesUsuariosDTO.Password);
+                var role = await userManager.AddClaimAsync(usuario, new Claim(ClaimTypes.Role, credencialesUsuariosDTO.role));
 
-                return await ConstruirToken(credencialesUsuariosDTO);
-            }
-            else
-            {
+                if (resultado.Succeeded && role.Succeeded)
+                {
+                    var token = await userManager.GenerateEmailConfirmationTokenAsync(usuario);
+                    if (!string.IsNullOrEmpty(token))
+                    {
+                        SendConfirmationEmail(usuario, token);
+                        return Ok("chek your email account");
+                    }
+                    throw new Exception();
+                }
                 return BadRequest("there was an error");
+                
+            }
+            catch (Exception)
+            {
+                throw;
             }
         }
+
+        [HttpGet("confirm-email")]
+        public async Task<ActionResult<RespAuthDTO>> ConfirmarEmail(string uid, string token)
+        {
+            
+            if (string.IsNullOrEmpty(uid) || string.IsNullOrEmpty(token)) return BadRequest();
+
+            token = token.Replace(" ", "+");
+
+            var user = await  userManager.FindByIdAsync(uid);
+
+            if (user == null) return NotFound();
+            
+            var result = await userManager.ConfirmEmailAsync(user, token);
+
+            if (!result.Succeeded) return StatusCode(500);
+
+            return await ConstruirToken(new CredUserDTO { Email = user.Email } ); 
+
+        }
+
         [HttpPost("login")]
         public async Task<ActionResult<RespAuthDTO>> Login(CredUserDTO credencialesUsuariosDTO)
         {
             var resultado = await signInManager.PasswordSignInAsync(credencialesUsuariosDTO.Email,
                 credencialesUsuariosDTO.Password,
                 isPersistent: false,
-                lockoutOnFailure: false); //lockout si el usuario intenta varias veces fallidas lo bloquea
+                lockoutOnFailure: false); //lockout si el usuario intenta varias veces fallidas lo bloquea  
 
             if (resultado.Succeeded)
             {
                 return await ConstruirToken(credencialesUsuariosDTO);
             }
-            else
+            else if (resultado.IsNotAllowed)
             {
-                return BadRequest("Login Wrong");
+                return Unauthorized("Confirm your email");
             }
+            return BadRequest("Login Wrong");
+
         }
         [HttpPost("RenovarToken")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
@@ -157,6 +194,22 @@ namespace Api_Hotel_V2.Controllers
                 Token = new JwtSecurityTokenHandler().WriteToken(securityToken),
                 Expiration = expiracion
             };
+        }
+        private void SendConfirmationEmail(IdentityUser user, string token)
+        {
+
+            string appDomain = configuration.GetSection("Application:AppDomain").Value;
+            string confirmationLink = configuration.GetSection("Application:EmailConfirmation").Value;
+
+            var email = new EmailDTO();
+            email.Para = user.Email;
+            email.Asunto = "Confirm your account.";
+
+            string url = string.Format(appDomain + confirmationLink, user.Id, token);
+
+            email.Contenido = url;
+
+            emailService.SendEmail(email);
         }
     }
 }

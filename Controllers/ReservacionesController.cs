@@ -1,6 +1,8 @@
 ﻿using Api_Hotel_V2.DTOs.ReservacionesDTOs;
 using Api_Hotel_V2.Entidades;
 using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,6 +10,7 @@ namespace Api_Hotel_V2.Controllers
 {
 
     [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("api/reservaciones")]
     public class ReservacionesController : CustomBaseController
     {
