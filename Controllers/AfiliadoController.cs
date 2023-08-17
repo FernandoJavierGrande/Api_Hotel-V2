@@ -27,6 +27,7 @@ namespace Api_Hotel_V2.Controllers
         [HttpGet]
         public async Task<ActionResult<List<AfiliadoDTO>>> Get([FromQuery] PaginacionDTO paginacionDTO)
         {
+
             var queryable = context.Afiliados.AsQueryable();
             await HttpContext.InsertarParamPaginacion(queryable, paginacionDTO.CantidadRegistrosPorPagina);
 

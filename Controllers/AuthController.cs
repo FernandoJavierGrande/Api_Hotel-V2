@@ -85,8 +85,8 @@ namespace Api_Hotel_V2.Controllers
             return await ConstruirToken(new CredUserDTO { Email = user.Email });
 
         }
-        [HttpPost("RecoveryPassword")]
-        public async Task<ActionResult> OlvidoPassword(EmailForgetPassDTO emailDTO)
+        [HttpPost("ForgotPassword")]
+        public async Task<ActionResult> ForgotPassword(EmailForgetPassDTO emailDTO)
         {
             var user = await _userManager.FindByEmailAsync(emailDTO.Email);
 
@@ -102,13 +102,45 @@ namespace Api_Hotel_V2.Controllers
 
             string url = string.Format(appDomain + resetLink, user.Email, token);
 
-            var email = new EmailDTO() { Para = user.Email, Asunto = "" +
-                ".", Contenido = url};
+            var email = new EmailDTO() { Para = user.Email, Asunto = "Recupero de contraseña.", Contenido = url};
 
             _emailService.SendEmail(email);
 
             return Ok();
 
+        }
+        [HttpGet("reset-Password")]
+        public async Task<ActionResult> ResetPassword( string email, string token)
+        {
+            var model = new ResetPasswordDTO { Email = email, Token = token };
+
+            return Ok(new { model});
+
+        }
+        [HttpPost("reset-password")]
+        public async Task<ActionResult> ResetPassword(ResetPasswordDTO resetPassword)
+        {
+            var user = await  _userManager.FindByEmailAsync(resetPassword.Email);
+
+            if (user != null)
+            {
+                resetPassword.Token = resetPassword.Token.Replace(" ", "+");
+
+                var resetPassResult = await _userManager.ResetPasswordAsync(user, resetPassword.Token, resetPassword.Password);
+                if (!resetPassResult.Succeeded)
+                {
+                    ObjectResult resp = new ObjectResult(null);
+                    resp.StatusCode = StatusCodes.Status500InternalServerError;
+                    resp.Value = "Can not reset password";
+                    foreach (var item in resetPassResult.Errors)
+                    {
+                        Console.WriteLine(item.Description);
+                    };
+                    return resp;
+                }
+                return Ok("Success");
+            }
+            return NotFound();
         }
 
         [HttpPost("login")]
