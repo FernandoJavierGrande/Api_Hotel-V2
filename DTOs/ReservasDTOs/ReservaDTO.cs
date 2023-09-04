@@ -9,7 +9,7 @@
         public bool Activa { get; set; }
         public string Obs { get; set; }
         public string Acompaniantes { get; set; }
-        public string UsuarioId { get; set; }
+        public string Usuario { get; set; }
         public DateTime? fechaDeCreacion { get; set; }
 
 

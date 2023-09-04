@@ -16,6 +16,9 @@ namespace Api_Hotel_V2.DTOs.EntidadesDTOs
         public string Apellido { get; set; }
         public DateTime FechaCreacion { get; set; } = DateTime.Now;
         [Required]
+        [EmailAddress]
+        public string Email { get; set; }
+        [Required]
         public string NumAfiliado { get; set; }
     }
 }

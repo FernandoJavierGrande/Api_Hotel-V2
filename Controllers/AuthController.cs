@@ -37,35 +37,6 @@ namespace Api_Hotel_V2.Controllers
             this.context = context;
         }
 
-        [HttpPost("registrar")] //api/cuentas/registrar
-        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
-        public async Task<ActionResult<RespAuthDTO>> Registrar(CredUserDTO credencialesUsuariosDTO)
-        {
-            try
-            {
-                var usuario = new IdentityUser { UserName = credencialesUsuariosDTO.Email, Email = credencialesUsuariosDTO.Email };
-                var resultado = await _userManager.CreateAsync(usuario, credencialesUsuariosDTO.Password);
-                var role = await _userManager.AddClaimAsync(usuario, new Claim(ClaimTypes.Role, credencialesUsuariosDTO.role));
-
-                if (resultado.Succeeded && role.Succeeded)
-                {
-                    var token = await _userManager.GenerateEmailConfirmationTokenAsync(usuario);
-                    if (!string.IsNullOrEmpty(token))
-                    {
-                        SendConfirmationEmail(usuario, token);
-                        return Ok("chek your email account");
-                    }
-                    throw new Exception();
-                }
-                return BadRequest("there was an error");
-
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-        }
-
         [HttpGet("confirm-email")]
         public async Task<ActionResult<RespAuthDTO>> ConfirmarEmail(string uid, string token)
         {
@@ -162,6 +133,7 @@ namespace Api_Hotel_V2.Controllers
             return BadRequest("Login Wrong");
 
         }
+
         [HttpPost("RenovarToken")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult<RespAuthDTO>> Renovar()
@@ -173,56 +145,8 @@ namespace Api_Hotel_V2.Controllers
 
             return await ConstruirToken(userInfo);
         }
-        //[HttpGet("Usuarios")] //Users list
-        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
-        //public async Task<ActionResult<List<UsuarioDTO>>> Get([FromQuery] PaginacionDTO paginationDTO)
-        //{
-        //    var queryable = context.Users.AsQueryable();
-        //    queryable = queryable.OrderBy(x => x.Email);
-        //    return await Get<IdentityUser, UsuarioDTO>(paginationDTO);
-        //}
-        [HttpPost("AsignarRol")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin")]
-        public async Task<ActionResult> AsignarRol(EditRoleDTO editarRolDTO)
-        {
-            try
-            {
-                var user = await _userManager.FindByIdAsync(editarRolDTO.UserId);
-                if (user == null)
-                {
-                    return NotFound();
-                }
-                //usar para crear admin?
-                await _userManager.AddClaimAsync(user, new Claim(ClaimTypes.Role, editarRolDTO.RoleName));
-                return NoContent();
-            }
-            catch (Exception e)
-            {
-                throw new Exception(e.Message);
-            }
-            
-        }
-        [HttpPost("RemoveRol")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin")]
-        public async Task<ActionResult> RemoverRol(EditRoleDTO editarRolDTO)
-        {
-            try
-            {
-                var user = await _userManager.FindByIdAsync(editarRolDTO.UserId);
-                if (user == null)
-                {
-                    return NotFound();
-                }
 
-                await _userManager.RemoveClaimAsync(user, new Claim(ClaimTypes.Role, editarRolDTO.RoleName));
-                return NoContent();
-            }
-            catch (Exception e)
-            {
-                throw new Exception(e.Message);
-            }
-        }
-        private async Task<RespAuthDTO> ConstruirToken(CredUserDTO credencialesUsuariosDTO)
+        private async Task<RespAuthDTO> ConstruirToken(CredUserDTO credencialesUsuariosDTO, int ExpirationSeg = 3600)
         {
             var claims = new List<Claim>() // no informacion sensible
             {
@@ -237,7 +161,7 @@ namespace Api_Hotel_V2.Controllers
 
             claims.AddRange(claimsDB);//une con los claims de la bbdd para que se generen en token
 
-            var expiracion = DateTime.UtcNow.AddDays(15);
+            var expiracion = DateTime.UtcNow.AddSeconds(ExpirationSeg);
 
             var llave = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["llaveJwt"]));
             var credenciales = new SigningCredentials(llave, SecurityAlgorithms.HmacSha256);
@@ -250,22 +174,6 @@ namespace Api_Hotel_V2.Controllers
                 Token = new JwtSecurityTokenHandler().WriteToken(securityToken),
                 Expiration = expiracion
             };
-        }
-        private void SendConfirmationEmail(IdentityUser user, string token)
-        {
-
-            string appDomain = _configuration.GetSection("Application:AppDomain").Value;
-            string confirmationLink = _configuration.GetSection("Application:EmailConfirmation").Value;
-
-            var email = new EmailDTO();
-            email.Para = user.Email;
-            email.Asunto = "Confirm your account.";
-
-            string url = string.Format(appDomain + confirmationLink, user.Id, token);
-
-            email.Contenido = url;
-
-            _emailService.SendEmail(email);
         }
     }
 }

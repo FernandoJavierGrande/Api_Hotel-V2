@@ -16,6 +16,8 @@ namespace Api_Hotel_V2.DTOs.ReservasDTOs
         public string Acompaniantes { get; set; }
 
         public DateTime? fechaDeCreacion { get; set; } = DateTime.Now;
+        [Required]
+        [MinLength(1, ErrorMessage = "Reservation must have at least one day")]
         public List<ReservacionCreacionDTO> reservaciones { get; set; } 
     }
 }

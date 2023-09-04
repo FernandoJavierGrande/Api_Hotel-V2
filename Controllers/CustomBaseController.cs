@@ -27,11 +27,11 @@ namespace Api_Hotel_V2.Controllers
             }
             catch (Exception)
             {
-
-               throw new Exception();
+                return new List<TDTO>(null); 
             }
             
         }
+
         //por medio de la interface se puede pasar una entidad que cumpla con IId
         protected async Task<ActionResult<TDTO>> Get<TEntidad, TDTO>(int id) where TEntidad : class, IId
         {
@@ -48,15 +48,10 @@ namespace Api_Hotel_V2.Controllers
             }
             catch (Exception)
             {
-
                 return StatusCode(500);
             }
             
         }
-        //protected async Task<List<TDTO>> Get<TEntidad, TDTO>(PaginacionDTO paginacionDTO) where TEntidad : class 
-        //{
-        //    var queryable = context.Set<TEntidad>().AsQueryable(TE)
-        //}
 
         protected async Task<ActionResult> Post<TCreacion, TEntidad, TLectura>(
             TCreacion creacionDTO, String nombreRuta) where TEntidad : class, IId
@@ -92,7 +87,6 @@ namespace Api_Hotel_V2.Controllers
             }
             catch (Exception)
             {
-
                 return StatusCode(500);
             }
             

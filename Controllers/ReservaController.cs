@@ -1,5 +1,6 @@
 ﻿using Api_Hotel_V2.DTOs.ReservasDTOs;
 using Api_Hotel_V2.Entidades;
+using Api_Hotel_V2.Servicios;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -17,27 +18,39 @@ namespace Api_Hotel_V2.Controllers
     {
         private readonly IMapper mapper;
         private readonly Context context;
-        public ReservaController(IMapper mapper, Context context) : base(context, mapper)
+        private readonly IEmailReservasService _emailReservasService;
+
+        public ReservaController(IMapper mapper, Context context, IEmailReservasService emailReservasService) : base(context, mapper)
         {
             this.mapper = mapper;
             this.context = context;
+            _emailReservasService = emailReservasService;
         }
         [HttpPost]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult<ReservaDTOconReservaciones>> Post([FromBody] ReservaCreacionDTO reservaCreacionDTO)
         {
+            Reserva reserva = mapper.Map<Reserva>(reservaCreacionDTO);
             try
             {
                 var id = HttpContext.User.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier).Value;
 
-                Reserva reserva = mapper.Map<Reserva>(reservaCreacionDTO);
+                reserva.Afiliado = await context.Afiliados.Where(a => a.Id == reserva.AfiliadoId).FirstOrDefaultAsync();
+
+                if (reserva.Afiliado == null)
+                {
+                    throw new Exception();
+                }
+
                 List<DateTime> listaDias = new List<DateTime>();
+                List<int> listaHab = new List<int>();
 
                 foreach (var res in reserva.Reservaciones)
                 {
                     if (!listaDias.Contains(res.Fecha)) listaDias.Add(res.Fecha);
+                    if (!listaHab.Contains(res.HabitacionId)) listaHab.Add(res.HabitacionId);
                 }
-
+                
                 var reservaciones = await context.Reservaciones.Where(r => listaDias.Contains(r.Fecha)).ToListAsync();
 
                 for (int i = 0; i < reservaciones.Count; i++)
@@ -51,18 +64,34 @@ namespace Api_Hotel_V2.Controllers
                     }
                 }
                 reserva.UsuarioId = id;
-                context.Add(reserva);
-                await context.SaveChangesAsync();
+                reserva.Usuario.UserName = id;
 
-                var reservaDTO = mapper.Map<ReservaDTO>(reserva);
+                context.Add(reserva);
+                var resp = await context.SaveChangesAsync();
+
+                if (resp == 0)
+                {
+                    throw new Exception();
+                }
+                var reservaDTOMail = mapper.Map<ReservaDTOMail>(reserva);
+                reservaDTOMail.Dias = listaDias;
+                reservaDTOMail.Habitaciones = listaHab;
+
+                _emailReservasService.SendEmailNuevaReserva(reservaDTOMail);
+
+                var reservaDTO = mapper.Map<ReservaDTOconReservaciones>(reserva);
+
                 return CreatedAtRoute("GetRva", new { id = reserva.Id }, reservaDTO);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                throw;
+                return BadRequest();
             }
         }
+        
+
+
         [HttpGet("{id:int}", Name = "GetRva")]
         public async Task<ActionResult<ReservaDTOconReservaciones>>Get(int id)
         {
@@ -72,15 +101,18 @@ namespace Api_Hotel_V2.Controllers
                 .Include(r => r.Reservaciones)
                 .ThenInclude(h => h.Habitacion)
                 .Include(r => r.Afiliado)
+                .Include(u => u.Usuario)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
-                if (reserva == null){
-                    return NotFound();}
+                if (reserva == null)
+                {
+                    return NotFound();
+                }
                 return mapper.Map<ReservaDTOconReservaciones>(reserva);
             }
             catch (Exception)
             {
-                throw;
+                return BadRequest();
             }
         }
         [HttpDelete("{id:int}")]
@@ -101,7 +133,7 @@ namespace Api_Hotel_V2.Controllers
             }
             catch (Exception)
             {
-                throw;
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
         [HttpPut("activa/{id:int}")]

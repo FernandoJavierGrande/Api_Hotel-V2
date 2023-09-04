@@ -2,6 +2,7 @@
 {
     public class PaginacionDTO
     {
+        // contiene la pagina en la que se encuentra el usuario y la cantidad de registros por pagina
         public int Pagina { get; set; } = 1;
 
         private int cantidadRegistrosPorPagina = 10;

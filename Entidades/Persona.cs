@@ -19,6 +19,5 @@ namespace Api_Hotel_V2.Entidades
         [Required]
         public DateTime FechaCreacion { get; set; }
 
-        private string _max = $"El numero no puede ser mayor a {1} caracteres";
     }
 }

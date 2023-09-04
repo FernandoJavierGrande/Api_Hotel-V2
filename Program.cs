@@ -43,6 +43,7 @@ builder.Services.Configure<IdentityOptions>(opt => { opt.SignIn.RequireConfirmed
 builder.Services.Configure<DataProtectionTokenProviderOptions>(opt => opt.TokenLifespan = TimeSpan.FromMinutes(15));
 
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IEmailReservasService, EmailReservasService>();
 
 var app = builder.Build();
 

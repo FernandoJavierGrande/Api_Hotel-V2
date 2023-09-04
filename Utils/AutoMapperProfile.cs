@@ -24,11 +24,15 @@ namespace Api_Hotel_V2.Utils
             //reserva
             CreateMap<Reserva, ReservaDTO>().ReverseMap();
             CreateMap<Reserva, ReservaDTOconReservaciones>()
+                .ForMember(u => u.Usuario, opt => { opt.MapFrom(x => x.Usuario.UserName); })
                 .ForMember(a => a.NumAfiliado, opt => { opt.MapFrom(r => r.Afiliado.NumAfiliado); })
                 .ForMember(r => r.ReservacionesDTO, opciones => opciones.MapFrom(MapReservacionesDTOReservas)).ReverseMap();
             CreateMap<ReservaCreacionDTO, Reserva>()
                 .ForMember(x => x.Reservaciones, opciones => opciones.MapFrom(MapReservaCreacionDTOReservas));
             CreateMap<Reserva, PatchReservaEstadoDTO>().ReverseMap();
+            CreateMap<Reserva, ReservaDTOMail>()
+                .ForMember(a => a.NumAfiliado, opt => { opt.MapFrom(r => r.Afiliado.NumAfiliado); })
+                .ForMember(r => r.ReservacionesDTO, opt => opt.MapFrom(MapReservacionesDTOReservas));
 
             //reservacion
             CreateMap<Reservacion, ReservacionDTO>().ReverseMap();
@@ -36,15 +40,15 @@ namespace Api_Hotel_V2.Utils
 
         }
 
-        private List<ReservacionDTO> MapReservacionesDTOReservas(Reserva reserva, ReservaDTOconReservaciones reservaDTOconReservaciones)
+        private List<ReservacionDTO> MapReservacionesDTOReservas(Reserva reserva, IReservaConReservacionesDTO reservaDTOconReservaciones)
         {
             var resultado = new List<ReservacionDTO>();
-
+            
             foreach (var reservacion in reserva.Reservaciones)
             {
                 resultado.Add(new ReservacionDTO()
                 {
-                    HabitacionId = reservacion.Habitacion.Id,
+                    HabitacionId = reservacion.HabitacionId,
                     Fecha = reservacion.Fecha,
                 });
             }

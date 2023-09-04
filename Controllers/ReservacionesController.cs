@@ -23,11 +23,11 @@ namespace Api_Hotel_V2.Controllers
             this.context = context;
         }
         [HttpGet("{fecha}")]
-        public async Task<ActionResult> Get(string fecha)
+        public async Task<ActionResult> Get(string fecha, int cantidadDias = 7)
         {
             DateTime date;
-            int cantidadDias = 7;
             List<ReservacionDTO> listaReservacionesDTO = new List<ReservacionDTO>();
+
             var ok = DateTime.TryParse(fecha, out date);
             
             if (!ok) return BadRequest();
@@ -46,9 +46,7 @@ namespace Api_Hotel_V2.Controllers
             {
                 return StatusCode(500);
             }
-
         }
-        
 
         [HttpPost("{id:int}")]
         public async Task<ActionResult> Post(int id,[FromBody] List<ReservacionDTO> LsReservacionDTOs)
@@ -63,7 +61,7 @@ namespace Api_Hotel_V2.Controllers
                 if (!listaDias.Contains(res.Fecha)) listaDias.Add(res.Fecha);
             }
 
-            var reservacionesDb= await context.Reservaciones.Where(r => listaDias.Contains(r.Fecha)).ToListAsync();
+            var reservacionesDb = await context.Reservaciones.Where(r => listaDias.Contains(r.Fecha)).ToListAsync();
 
             for (int i = 0; i < reservacionesDb.Count; i++)
             {
@@ -89,7 +87,7 @@ namespace Api_Hotel_V2.Controllers
                 await context.SaveChangesAsync();
                 return Ok();
             }
-            catch (Exception e)
+            catch (Exception )
             {
                 return StatusCode(500);
             }
@@ -97,7 +95,6 @@ namespace Api_Hotel_V2.Controllers
         [HttpDelete]
         public async Task<ActionResult> Delete([FromBody] ReservacionCreacionDTO reservacionDeleteDTO)
         {
-           
             Reservacion reservacionDelete = mapper.Map<Reservacion>(reservacionDeleteDTO);
 
             try
