@@ -64,7 +64,6 @@ namespace Api_Hotel_V2.Controllers
                     }
                 }
                 reserva.UsuarioId = id;
-                reserva.Usuario.UserName = id;
 
                 context.Add(reserva);
                 var resp = await context.SaveChangesAsync();
@@ -74,7 +73,6 @@ namespace Api_Hotel_V2.Controllers
                     throw new Exception();
                 }
                 var reservaDTOMail = mapper.Map<ReservaDTOMail>(reserva);
-                reservaDTOMail.Dias = listaDias;
                 reservaDTOMail.Habitaciones = listaHab;
 
                 _emailReservasService.SendEmailNuevaReserva(reservaDTOMail);

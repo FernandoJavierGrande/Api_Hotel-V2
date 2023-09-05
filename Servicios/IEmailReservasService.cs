@@ -4,7 +4,7 @@ namespace Api_Hotel_V2.Servicios
 {
     public interface IEmailReservasService
     {
-        public void SendEmailNuevaReserva(ReservaDTOMail reservaDTO) { 
-        }
+        void SendEmailNuevaReserva(ReservaDTOMail reservaDTO);
+        void SendEmailModReserva(ReservaDTOMail reservaDTOMail);
     }
 }
