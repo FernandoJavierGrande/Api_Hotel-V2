@@ -50,7 +50,6 @@ namespace Api_Hotel_V2.Controllers
             }
             catch (Exception e)
             {
-                Console.WriteLine($" esta en el catch superior {e.StackTrace}");
                 return StatusCode(StatusCodes.Status500InternalServerError, new {message= "User error" });
             }
         }

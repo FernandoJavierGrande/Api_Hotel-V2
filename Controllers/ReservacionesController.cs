@@ -28,6 +28,7 @@ namespace Api_Hotel_V2.Controllers
             this.context = context;
             this._emailReservas = emailReservas;
         }
+
         [HttpGet("{fecha}")]
         public async Task<ActionResult> Get(string fecha, int cantidadDias = 7)
         {
@@ -71,7 +72,7 @@ namespace Api_Hotel_V2.Controllers
                 var reserva = await context.Reservas.Where(r => r.Id == idReserva).Include(r => r.Reservaciones).Include(a=>a.Afiliado).AsNoTracking().FirstOrDefaultAsync();
 
                 reserva = (reserva != null) ? reserva : throw new Exception("El numero de reserva no existe.");
-                //Probar con AllAsync() para varias habitaciones
+                //Probar con AllAsync() para varias habitacioness
                 var exist = (await context.Habitaciones.Where(h => h.Id == room).AnyAsync() == true) ? true : throw new Exception("La habitacion NO EXISTE.");
 
                 List<DateTime> listaDias = new List<DateTime>();
